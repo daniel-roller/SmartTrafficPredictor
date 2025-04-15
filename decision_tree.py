@@ -1,57 +1,55 @@
-import numpy as np
-import matplotlib.pyplot as plt
-from sklearn import datasets, metrics
-from sklearn.tree import DecisionTreeClassifier, DecisionTreeRegressor
+from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
-from matplotlib.colors import ListedColormap
+from sklearn.tree import DecisionTreeClassifier
+from sklearn.metrics import accuracy_score
 
+# 載入 Iris 資料集
+iris = load_iris()
+X = iris.data
+y = iris.target
 
- 
+# 切分資料集為訓練集與測試集
+X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
 
-def plot_decision_regions(X, y, classifier, test_idx=None, resolution=0.02):
-    # setup markers generator and color map
-    markers = ('s', 'x', 'o', '^', 'v')
-    colors = ('red', 'blue', 'lightgreen', 'gray', 'cyan')
-    cmap = ListedColormap(colors[:len(np.unique(y))])
+# 建立並訓練決策樹模型
+model = DecisionTreeClassifier(random_state=42)
+model.fit(X_train, y_train)
 
-    # plot the decision surface
-    x1_min, x1_max = X[:, 0].min() - 1, X[:, 0].max() + 1
-    x2_min, x2_max = X[:, 1].min() - 1, X[:, 1].max() + 1
-    xx1, xx2 =  np.meshgrid(np.arange(x1_min, x1_max, resolution), np.arange(x2_min, x2_max, resolution))
+# 預測並計算準確率
+y_pred = model.predict(X_test)
+accuracy = accuracy_score(y_test, y_pred)
 
-    z = classifier.predict(np.array([xx1.ravel(), xx2.ravel()]).T)
-    z = z.reshape(xx1.shape)
-    plt.contourf(xx1, xx2, z, alpha=0.4, cmap=cmap)
-    plt.xlim(xx1.min(), xx1.max())
-    plt.ylim(xx2.min(), xx2.max())
+# 顯示結果
+print(f"Accuracy: {accuracy:.2f}")
+"""
+load_iris()：載入 Iris 資料集，這是一個常用於分類問題的資料集。
 
-    # plot all samples
-    X_test, y_test = X[test_idx, :], y[test_idx]
-    for idx, cl in enumerate(np.unique(y)):
-        plt.scatter(x=X[y==cl, 0], y=X[y==cl, 1], alpha=0.8, c=cmap(idx), marker=markers[idx], label=cl)
-    
-    # hightlight test samples
-    if test_idx:
-        X_test, y_test = X[test_idx, :], y[test_idx]
-        plt.scatter(X_test[:, 0], X_test[:, 1], c='', alpha=1.0, linewidth=1, marker='o', s=55, label='test set')
+train_test_split()：將資料集分為訓練集和測試集，30% 用來測試，70% 用來訓練。
 
+DecisionTreeClassifier()：建立一個決策樹分類模型。
 
-def main():
-  iris = datasets.load_iris()
-  x_train, x_test, y_train, y_test = train_test_split(iris.data[:, [2, 3]], iris.target, test_size=0.25, random_state=4)
-  clf = DecisionTreeClassifier(criterion='entropy', max_depth=3, random_state=0)
-  clf.fit(x_train, y_train)
-  y_pred = clf.predict(x_test)
+fit()：用訓練集資料來訓練模型。
 
-  X_combined = np.vstack((x_train, x_test))
-  y_combined = np.hstack((y_train, y_test))
-  
-  plot_decision_regions(X_combined, y_combined, classifier=clf)
-  plt.xlabel('petal length [cm]')
-  plt.ylabel('petal width [cm]')
-  plt.legend(loc='upper left')
-  plt.show()
+predict()：對測試集資料進行預測。
 
+accuracy_score()：計算並顯示模型在測試集上的準確率。
 
-if __name__ == '__main__':
-  main()
+優點：
+容易理解：決策樹像樹一樣，每個分支可以直觀解釋。
+
+能處理複雜資料：可以處理非線性關係的資料。
+
+不需要資料標準化：不會受資料尺度影響。
+
+能處理缺失值：對缺失資料有容錯性。
+
+缺點：
+容易過擬合：如果樹太深，模型會對訓練資料過於精確，表現不好。
+
+對異常值敏感：極端數據會影響結果。
+
+決策邊界不平滑：用直線或垂直分割，無法處理曲線型資料。
+
+大樹難以解釋：樹太深時，解釋變得複雜。
+
+"""

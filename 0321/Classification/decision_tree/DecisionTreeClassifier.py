@@ -1,3 +1,4 @@
+# 用來預測鳶尾花資料集的三個品種
 from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
 from sklearn.tree import DecisionTreeClassifier

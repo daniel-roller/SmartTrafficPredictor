@@ -99,3 +99,17 @@
 • 你們要找分類、回歸、分群三種型態的資料，跑不同模型看看效果。
 
 • 你們去看 Titanic 生存預測範例，那些處理資料方式滿值得參考的。
+
+Titanic/
+├── data/
+│   ├── train.csv
+│   ├── test.csv
+├── model/
+│   └── titanic_best_model.pkl
+├── output/
+│   ├── titanic_prediction_result.csv
+│   └── submission.csv
+├── scripts/
+│   ├── train_and_save_full.py  ← 主訓練檔案（含比較與儲存）
+│   ├── load_and_predict_full.py  ← 主預測檔案（含評估、畫圖、預測新資料）
+│   └── preprocessing.py         ← 前處理模組（可重複使用）

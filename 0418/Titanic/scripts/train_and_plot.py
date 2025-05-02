@@ -1,5 +1,4 @@
-# train_and_plot.py
-# 📊 使用 Kaggle 資料比較多個模型的準確率，並畫圖儲存
+# 簡單版
 
 import pandas as pd
 import joblib

@@ -1,54 +1,55 @@
+# load_and_predict.py
+# 完全修正版：正確預測 train.csv 與 test.csv，產生 prediction 與 submission
 
-# 📌 載入 Titanic 模型並預測（加強版）
 import pandas as pd
-import seaborn as sns
 import joblib
-from sklearn.model_selection import train_test_split
+import os
+from preprocessing import preprocess_titanic
 
-# 載入模型
-model = joblib.load("titanic_best_model.pkl")
-print("✅ 已成功載入 titanic_best_model.pkl")
+# === 1. 載入最新模型 ===
+model_path = "../model/titanic_best_model.pkl"
+if not os.path.exists(model_path):
+    raise FileNotFoundError("找不到模型檔案，請先執行 train_and_compare.py")
 
-# 印出模型摘要（顯示內部 Pipeline 結構）
-print("\n🔍 模型摘要：")
-print(model)
+model = joblib.load(model_path)
+print("✅ 已成功載入模型")
 
-# 準備資料（與訓練時一致）
-df = sns.load_dataset("titanic")
-df = df.drop(columns=["deck", "embark_town", "alive", "who", "adult_male", "class"])
-df["age"] = df["age"].fillna(df["age"].median())
-df["embarked"] = df["embarked"].fillna(df["embarked"].mode()[0])
-df = df.dropna()
 
-cat_features = ["sex", "embarked"]
-num_features = ["pclass", "fare", "sibsp", "parch"]
-X = df[num_features + cat_features]
-y = df["survived"]
+# === 2. 預測 train.csv 資料 ===
+print("\n🔹 預測 train.csv 資料...")
 
-_, X_test, _, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+df_train = preprocess_titanic("../data/train.csv", is_train=True)
+X_train = df_train[["Pclass", "Fare", "SibSp", "Parch", "Sex", "Embarked"]]
 
-# 模型預測
-y_pred = model.predict(X_test)
+# 預測 train.csv
+y_pred_train = model.predict(X_train)
 
-# 顯示前 10 筆預測
-print("\n🔍 模型預測前 10 筆：")
-print(y_pred[:10])
+# 儲存 train 預測結果
+os.makedirs("../output", exist_ok=True)
+df_result = X_train.copy()
+df_result["predicted_survived"] = y_pred_train
+df_result.to_csv("../output/titanic_prediction_result.csv", index=False)
+print("📅 預測結果已儲存 output/titanic_prediction_result.csv")
 
-# 存成 CSV
-df_result = X_test.copy()
-df_result["predicted_survived"] = y_pred
-df_result.to_csv("titanic_prediction_result.csv", index=False)
-print("\n📁 預測結果已存為 titanic_prediction_result.csv")
 
-# 額外：手動輸入新資料（只示範格式）
-sample = pd.DataFrame([{
-    "pclass": 1,
-    "fare": 100,
-    "sibsp": 0,
-    "parch": 0,
-    "sex": "female",
-    "embarked": "S"
-}])
+# === 3. 預測 test.csv 生成 submission.csv ===
+print("\n🔹 預測 test.csv 產生 submission.csv...")
 
-new_pred = model.predict(sample)
-print("\n🧪 新資料預測結果（是否生存）:", new_pred[0])
+df_test, passenger_ids = preprocess_titanic("../data/test.csv", is_train=False)
+X_test = df_test[["Pclass", "Fare", "SibSp", "Parch", "Sex", "Embarked"]]
+
+# 預測 test.csv
+y_submit_pred = model.predict(X_test)
+
+# 儲存 submission.csv
+submission = pd.DataFrame({
+    "PassengerId": passenger_ids,
+    "Survived": y_submit_pred
+})
+submission.to_csv("../output/submission.csv", index=False)
+print("📅 submission.csv 已儲存 output/submission.csv，可上傳 Kaggle!")
+
+print("\n🚀 全部預測結束！")
+# 這段程式碼會載入訓練好的模型，然後預測 train.csv 和 test.csv 的資料，並將預測結果儲存到指定的 CSV 檔案中。
+# 這樣的結構讓你可以輕鬆地將預測結果與原始資料進行比較，並且能夠生成 Kaggle 所需的 submission 格式。
+# 這樣的設計也讓你可以輕鬆地將預測結果與原始資料進行比較，並且能夠生成 Kaggle 所需的 submission 格式。

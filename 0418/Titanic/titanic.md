@@ -1,121 +1,82 @@
-# 💚 Titanic Machine Learning Project - README
+# 🔍 Titanic 專案資料前處理統整說明
+
+本文件說明專案中資料前處理的兩大階段：`preprocessing.py` 負責資料清理，`ColumnTransformer` 則負責特徵轉換。這樣的設計讓每個任務（分類、回歸、分群）都能重複使用統一的流程，同時確保模型可以正確訓練與預測。
 
 ---
 
-## 🔎 工作目標
+## 🧹 第一階段：資料清理（由 `preprocessing.py` 處理）
 
-將 Titanic 資料集用於分類預測，比較多個 Machine Learning 模型，評估效果，選最好的模型，並用圖表可視化，後續生成或交付成果。
+此階段負責處理原始 CSV 資料，將其轉為乾淨、統一的 DataFrame。
 
+### ✅ 功能整理
 
----
+| 功能    | 說明                                                    |
+| ----- | ----------------------------------------------------- |
+| 缺值處理  | `Age` 補中位數，`Fare`（test）補中位數，`Embarked` 補眾數            |
+| 欄位刪除  | `Cabin`, `Ticket`, `Name`, `PassengerId`（只保留一份）       |
+| 欄位一致性 | 讓 train/test 擁有相同欄位結構（可交互使用）                          |
+| 模式區分  | `is_train=True` 時保留 Survived；否則只保留 PassengerId + 特徵欄位 |
 
-## 📚 目錄結構 (tree .)
+### 📦 範例輸出欄位（給 ColumnTransformer 使用）
 
-```plaintext
-TitanicProject/
-├── data/
-│   ├— train.csv
-│   └— test.csv
-├── model/
-│   └— titanic_best_model.pkl
-├── output/
-│   ├— titanic_prediction_result.csv
-│   └— submission.csv
-├── figures/
-│   ├— model_accuracy.png
-│   ├— model_f1score.png
-│   ├— confusion_matrix.png
-│   └— feature_importance.png
-├── scripts/
-│   ├— preprocessing.py
-│   ├— train_and_plot.py
-│   ├— load_and_predict.py
-│   └— train_and_compare.py
-├── README.md
-```
-
-
----
-
-## 🔢 環境要求
-
-```bash
-pip install pandas scikit-learn matplotlib seaborn joblib
+```text
+Pclass, Sex, Age, SibSp, Parch, Fare, Embarked
 ```
 
 ---
 
-## ⚡ 執行流程
+## 🏗️ 第二階段：特徵轉換（由 `ColumnTransformer` 處理）
 
-### 1. 執行基礎版模型試證
+這一階段是專門為了「機器學習模型能理解與學習」而設計的，主要將欄位轉成數值化格式並進行標準化。
 
-🔹 執行基礎模型試證:
+### ✅ 處理內容
 
-```bash
-python scripts/train_and_plot.py
+| 處理    | 工具                            | 說明                     |
+| ----- | ----------------------------- | ---------------------- |
+| 類別轉換  | `OneHotEncoder(drop='first')` | 例如 Sex=female 轉成 0/1   |
+| 數值標準化 | `StandardScaler()`            | 讓 Age、Fare 等特徵轉成標準常態分布 |
+
+```python
+ColumnTransformer([
+    ("num", StandardScaler(), ["Pclass", "Age", "SibSp", "Parch", "Fare"]),
+    ("cat", OneHotEncoder(drop="first"), ["Sex", "Embarked"])
+])
 ```
 
-會產生：
-- 比較模型測試正確率 (model_accuracy.png)
-- 存成最好模型 titanic_best_model.pkl
+### ✅ 加入 Pipeline 的好處
 
-
-### 2. 載入模型預測結果
-
-```bash
-python scripts/load_and_predict.py
-```
-
-會產生：
-- output/titanic_prediction_result.csv
-- output/submission.csv (Kaggle 上傳用)
-
-
-### 3. 執行完整比較分析版
-
-```bash
-python scripts/train_and_compare.py
-```
-
-會生成：
-- 比較模型 Accuracy 與 F1-score
-- 示意圖：model_accuracy.png, model_f1score.png
-- 混淆矩陣圖 confusion_matrix.png
-- 特徵重要性圖 feature_importance.png (Decision Tree, Random Forest)
-
+| 優點           | 說明                            |
+| ------------ | ----------------------------- |
+| 可統一訓練流程      | `.fit()`、`.predict()` 都包含資料轉換 |
+| 可被儲存為 `.pkl` | 模型包含完整前處理邏輯                   |
+| 減少重複程式碼      | 每個任務不需再自己轉欄位                  |
 
 ---
 
-## ✨ 你會看到什麼？
+## 🧠 統整比較表
 
-- 🔢 Titanic 模型比較結果
-- 📊 Accuracy 與 F1-score 圖
-- 💛 最好的預測模型
-- 🖌 混淆矩陣分析
-- 🌐 特徵重要性分析
-
-
----
-
-## 👉 擔心點
-
-- 必須確保 `/data/` `/model/` `/figures/` `/output/` 路徑存在
-- 圖片保存路徑是相對路徑（../）
-- 預測模型不支援 feature_importance 的，會說明
-
+| 功能       | `preprocessing.py` | `ColumnTransformer` |
+| -------- | ------------------ | ------------------- |
+| 缺值補齊     | ✅                  | ❌                   |
+| 刪除無用欄位   | ✅                  | ❌                   |
+| 資料格式轉數字  | ❌                  | ✅                   |
+| 標準化數值特徵  | ❌                  | ✅                   |
+| 輸出供模型訓練  | ✅                  | ✅（經由 pipeline）      |
+| 可與模型打包儲存 | ❌                  | ✅                   |
 
 ---
 
-## 🎉 完成目標
+## ✅ 結論
 
-- 完整 Titanic Classification Project
-- 網站標準的網頁組織
-- 清楚說明說明
-- 最好模型保存
-- 可直接供給教授、考核或給組員使用
+前處理分兩階段各司其職：
 
+* `preprocessing.py` 負責基本清洗與欄位統一
+* `ColumnTransformer` 負責模型能接受的數值轉換
 
----
+這種結構讓整個專案具有：
 
-🚀 **Good Luck with Your Project!!** 🚀
+* 模組化（可重複用）
+* 一致性（train/test 處理邏輯一致）
+* 可擴充（可以在不同模型中複用）
 
+你現在的程式架構已經非常穩固，推薦保留這樣的設計！

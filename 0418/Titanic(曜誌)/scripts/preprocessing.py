@@ -1,5 +1,5 @@
 # preprocessing.py
-# 💡 專門負責 Titanic 資料後處理模組
+# 💡 專門責任 Titanic 資料後處理模組（已擴充特征工程）
 
 import pandas as pd
 
@@ -21,6 +21,19 @@ def preprocess_titanic(filepath, is_train=True):
     if "Fare" in df.columns:
         df["Fare"] = df["Fare"].fillna(df["Fare"].median())
     df["Embarked"] = df["Embarked"].fillna(df["Embarked"].mode()[0])
+
+    # 特征工程：Title（稱呼）
+    df["Title"] = df["Name"].str.extract(" ([A-Za-z]+)\\.", expand=False)
+    df["Title"] = df["Title"].replace(['Mlle', 'Ms'], 'Miss')
+    df["Title"] = df["Title"].replace(['Mme'], 'Mrs')
+    df["Title"] = df["Title"].replace(['Dr', 'Rev', 'Col', 'Major', 'Sir', 'Lady', 'Don', 'Dona', 'Jonkheer', 'Capt', 'Countess'], 'Rare')
+
+    # 特征工程：FamilySize, IsAlone
+    df["FamilySize"] = df["SibSp"] + df["Parch"] + 1
+    df["IsAlone"] = (df["FamilySize"] == 1).astype(int)
+
+    # 特征工程：FarePerPerson
+    df["FarePerPerson"] = df["Fare"] / df["FamilySize"]
 
     # 如果是 test.csv，保留 PassengerId（後續用來做 submission.csv）
     passenger_ids = None

@@ -81,8 +81,8 @@ print(f"\n✅ Best model: {best_tag}")
 
 # === 7. 儲存最佳模型 ===
 os.makedirs("../model", exist_ok=True)
-joblib.dump(best_model, "../model/titanic_best_model.pkl")
-print("✅ 模型已儲存為 model/titanic_best_model.pkl")
+joblib.dump(best_model, "../model/titanic_best_classification.pkl")
+print("✅ 模型已儲存為 model/titanic_best_classification.pkl")
 
 # === 8. 繪製比較圖（Accuracy / F1） ===
 os.makedirs("../figures", exist_ok=True)

@@ -1,14 +1,18 @@
 # tune_heart_classification.py
 # 調整 Heart Disease 分類模型參數 + SMOTE + SelectKBest + LightGBM + CatBoost
 
+import shap
 import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
 from imblearn.pipeline import Pipeline
 from imblearn.over_sampling import SMOTE
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.preprocessing import StandardScaler, OneHotEncoder
 from sklearn.compose import ColumnTransformer
 from sklearn.feature_selection import SelectKBest, f_classif
-from sklearn.metrics import f1_score, accuracy_score
+from sklearn.metrics import f1_score, accuracy_score, precision_score, recall_score
+from sklearn.metrics import confusion_matrix
 from xgboost import XGBClassifier
 from sklearn.neighbors import KNeighborsClassifier
 from lightgbm import LGBMClassifier
@@ -29,6 +33,16 @@ preprocessor = ColumnTransformer([
     ("num", StandardScaler(), num_features),
     ("cat", OneHotEncoder(drop="first"), cat_features)
 ])
+
+# 建立 ColumnTransformer 後（你的 preprocessor）
+preprocessor.fit(X_train)
+
+# 取得 onehot 特徵名
+ohe = preprocessor.named_transformers_["cat"]
+ohe_feature_names = ohe.get_feature_names_out(cat_features)
+
+# 組合全部特徵名
+feature_names = num_features + list(ohe_feature_names)
 
 # === 3. 定義模型與參數空間 ===
 model_configs = {
@@ -52,12 +66,13 @@ model_configs = {
     "CatBoost": {
         "model": CatBoostClassifier(verbose=0, allow_writing_files=False, task_type="CPU"),
         "params": {
-            "select__k": [10],
-            "model__iterations": [50],
-            "model__depth": [5],
-            "model__learning_rate": [0.1]
+            "select__k": [7, 10],
+            "model__iterations": [50, 100, 200],
+            "model__depth": [4, 6, 8],
+            "model__learning_rate": [0.05, 0.1, 0.2]
         }
     }
+
 
 }
 
@@ -80,11 +95,25 @@ for name, cfg in model_configs.items():
     y_pred = grid.predict(X_test)
     f1 = f1_score(y_test, y_pred)
     acc = accuracy_score(y_test, y_pred)
+    precision = precision_score(y_test, y_pred)
+    recall = recall_score(y_test, y_pred)
+
     results[name] = {
         "accuracy": acc,
         "f1": f1,
+        "precision": precision,
+        "recall": recall,
         "model": grid.best_estimator_
     }
+
+    cm = confusion_matrix(y_test, y_pred)
+    plt.figure(figsize=(4, 3))
+    sns.heatmap(cm, annot=True, fmt="d", cmap="Blues")
+    plt.title(f"Confusion Matrix ({name})")
+    plt.xlabel("Predicted")
+    plt.ylabel("Actual")
+    plt.tight_layout()
+    plt.savefig(f"../figures/heart_confusion_matrix_{name}.png")
 
     print(f"✅ {name} 最佳參數：{grid.best_params_}")
     print(f"➡️ 測試集 F1-score = {f1:.4f}, Accuracy = {acc:.4f}\\n")
@@ -96,10 +125,9 @@ best_model = best_models[best_name]
 os.makedirs("../model", exist_ok=True)
 joblib.dump(best_model, "../model/heart_best_tuned.pkl")
 print(f"💾 已儲存最佳調參模型：{best_name} 至 ../model/heart_best_tuned.pkl")
+
 # === 6. 模型評估圖表與混淆矩陣 ===
-import matplotlib.pyplot as plt
-import seaborn as sns
-from sklearn.metrics import confusion_matrix
+
 
 # 建立資料夾
 os.makedirs("../figures", exist_ok=True)
@@ -134,5 +162,65 @@ plt.xlabel("Predicted")
 plt.ylabel("Actual")
 plt.tight_layout()
 plt.savefig("../figures/heart_confusion_matrix.png")
-
 print("📊 混淆矩陣圖已儲存至 figures/heart_confusion_matrix.png")
+
+# === 7. 額外產出：SHAP Summary Plot for 多模型 ===
+print("📊 正在產出 SHAP Summary Plot...")
+
+for name, model in best_models.items():
+    try:
+        # 跳過不支援的模型（例如 KNN）
+        if name == "KNN":
+            print(f"⚠️  {name} 不支援 SHAP，跳過。")
+            continue
+
+        # 取得特徵名稱
+        selector = model.named_steps["select"]
+        selected_indices = selector.get_support(indices=True)
+        pre_X = preprocessor.transform(X_test)
+        selected_X = selector.transform(pre_X)
+        selected_feature_names = [feature_names[i] for i in selected_indices]
+
+        # 建立 explainer 並畫圖
+        explainer = shap.Explainer(model.named_steps["model"])
+        shap_values = explainer(selected_X)
+
+        plt.figure(figsize=(10, 6))
+        shap.summary_plot(shap_values, selected_X, feature_names=selected_feature_names, show=False)
+        plt.title(f"SHAP Summary Plot ({name})")
+        plt.tight_layout()
+        plt.savefig(f"../figures/heart_shap_summary_{name}.png")
+        plt.close()
+        print(f"✅ 已儲存 SHAP Summary Plot（{name}）")
+
+    except Exception as e:
+        print(f"❌ SHAP 畫圖失敗：{name} → {e}")
+
+# 匯出模型整體比較表格
+
+for m in results:
+    if "precision" not in results[m]:
+        print(f"⚠️ 缺少 precision：{m}")
+
+df_metrics = pd.DataFrame({
+    "Model": list(results.keys()),
+    "Accuracy": [results[m]["accuracy"] for m in results],
+    "F1-score": [results[m]["f1"] for m in results],
+    "Precision": [results[m]["precision"] for m in results],
+    "Recall": [results[m]["recall"] for m in results]
+})
+df_metrics.to_csv("../figures/heart_model_comparison.csv", index=False)
+print("📄 模型指標總表已儲存為 heart_model_comparison.csv")
+print("✅ 完成所有模型訓練與評估！")
+
+# 可視化指標比較（條狀圖）
+df_metrics.set_index("Model")[["Accuracy", "F1-score", "Precision", "Recall"]].plot(
+    kind="bar", figsize=(10, 6), colormap="viridis"
+)
+plt.ylabel("Score")
+plt.ylim(0.7, 1.0)
+plt.title("Heart Disease Model Performance Comparison")
+plt.xticks(rotation=0)
+plt.tight_layout()
+plt.savefig("../figures/heart_model_comparison_bar.png")
+print("📊 模型比較條狀圖已儲存為 heart_model_comparison_bar.png")

@@ -1,0 +1,54 @@
+# -*- coding: utf-8 -*-
+import pandas as pd
+import numpy as np
+from ucimlrepo import fetch_ucirepo
+import os
+
+os.makedirs("../data", exist_ok=True)
+
+# === 載入資料集 ===
+wine_quality = fetch_ucirepo(id=186)
+heart_disease = fetch_ucirepo(id=45)
+
+# === Wine Quality 資料處理 ===
+X_wine = wine_quality.data.features.copy()
+y_wine = wine_quality.data.targets
+
+# 如果 y 是 DataFrame，則取出第一欄轉成 Series（模型需要一維標籤）
+if isinstance(y_wine, pd.DataFrame):
+    y_wine = y_wine.iloc[:, 0]
+
+# 轉為二元分類（品質 >= 7 為 1）
+y_wine = (y_wine >= 7).astype(int)
+y_wine.name = "target"
+
+# 合併特徵與標籤
+wine_data = pd.concat([X_wine, y_wine], axis=1)
+wine_data.to_csv("../data/wine_processed.csv", index=False)
+
+# === Heart Disease 資料處理 ===
+X_heart = heart_disease.data.features.copy()
+y_heart = heart_disease.data.targets
+
+# 如果 y 是 DataFrame，則取出第一欄轉成 Series（模型需要一維標籤）
+if isinstance(y_heart, pd.DataFrame):
+    y_heart = y_heart.iloc[:, 0]
+
+# 轉為二元分類（0=無病，>0=有病）
+if y_heart.nunique() > 2:
+    y_heart = (y_heart > 0).astype(int)
+y_heart.name = "target"
+
+# 合併特徵與標籤
+heart_data = pd.concat([X_heart, y_heart], axis=1)
+
+# 處理缺值：將 '?' 轉為 NaN，嘗試轉數值，並刪除無法處理的列
+for col in heart_data.columns:
+    if heart_data[col].dtype == object:
+        heart_data[col] = pd.to_numeric(heart_data[col].replace('?', np.nan), errors='coerce')
+heart_data = heart_data.dropna()
+
+# 儲存結果
+heart_data.to_csv("../data/heart_processed.csv", index=False)
+
+print("✅ 預處理完成，已儲存 wine_processed.csv 與 heart_processed.csv")

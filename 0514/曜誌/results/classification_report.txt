@@ -2,57 +2,57 @@
               precision    recall  f1-score   support
 
            0       0.91      0.89      0.90      1048
-           1       0.59      0.63      0.61       252
+           1       0.59      0.62      0.60       252
 
     accuracy                           0.84      1300
-   macro avg       0.75      0.76      0.76      1300
-weighted avg       0.85      0.84      0.85      1300
+   macro avg       0.75      0.76      0.75      1300
+weighted avg       0.85      0.84      0.84      1300
 
 ==== Wine Quality - Random Forest ====
               precision    recall  f1-score   support
 
-           0       0.90      0.97      0.93      1048
-           1       0.82      0.56      0.66       252
+           0       0.90      0.97      0.94      1048
+           1       0.81      0.58      0.67       252
 
     accuracy                           0.89      1300
-   macro avg       0.86      0.76      0.80      1300
-weighted avg       0.88      0.89      0.88      1300
+   macro avg       0.86      0.77      0.80      1300
+weighted avg       0.89      0.89      0.88      1300
 
 ==== Wine Quality - SVM ====
               precision    recall  f1-score   support
 
-           0       0.85      0.97      0.91      1048
-           1       0.71      0.27      0.39       252
+           0       0.86      0.97      0.91      1048
+           1       0.72      0.36      0.48       252
 
-    accuracy                           0.84      1300
-   macro avg       0.78      0.62      0.65      1300
-weighted avg       0.82      0.84      0.81      1300
+    accuracy                           0.85      1300
+   macro avg       0.79      0.66      0.70      1300
+weighted avg       0.84      0.85      0.83      1300
 
 ==== Wine Quality - KNN ====
               precision    recall  f1-score   support
 
-           0       0.88      0.92      0.90      1048
-           1       0.59      0.45      0.51       252
+           0       0.90      0.93      0.91      1048
+           1       0.66      0.59      0.62       252
 
-    accuracy                           0.83      1300
-   macro avg       0.73      0.69      0.71      1300
-weighted avg       0.82      0.83      0.82      1300
+    accuracy                           0.86      1300
+   macro avg       0.78      0.76      0.77      1300
+weighted avg       0.86      0.86      0.86      1300
 
 ==== Wine Quality - XGBoost ====
               precision    recall  f1-score   support
 
-           0       0.91      0.95      0.93      1048
-           1       0.76      0.63      0.69       252
+           0       0.89      0.96      0.92      1048
+           1       0.77      0.50      0.60       252
 
-    accuracy                           0.89      1300
-   macro avg       0.84      0.79      0.81      1300
-weighted avg       0.88      0.89      0.89      1300
+    accuracy                           0.87      1300
+   macro avg       0.83      0.73      0.76      1300
+weighted avg       0.87      0.87      0.86      1300
 
 ==== Wine Quality - LightGBM ====
               precision    recall  f1-score   support
 
-           0       0.90      0.96      0.93      1048
-           1       0.77      0.56      0.64       252
+           0       0.90      0.95      0.93      1048
+           1       0.75      0.57      0.65       252
 
     accuracy                           0.88      1300
    macro avg       0.83      0.76      0.79      1300
@@ -61,42 +61,42 @@ weighted avg       0.87      0.88      0.87      1300
 ==== Wine Quality - CatBoost ====
               precision    recall  f1-score   support
 
-           0       0.89      0.96      0.93      1048
-           1       0.77      0.50      0.61       252
+           0       0.91      0.95      0.93      1048
+           1       0.75      0.62      0.68       252
 
-    accuracy                           0.87      1300
-   macro avg       0.83      0.73      0.77      1300
-weighted avg       0.87      0.87      0.86      1300
+    accuracy                           0.89      1300
+   macro avg       0.83      0.79      0.81      1300
+weighted avg       0.88      0.89      0.88      1300
 
 ==== Heart Disease - Decision Tree ====
               precision    recall  f1-score   support
 
-           0       0.85      0.78      0.81        36
-           1       0.70      0.79      0.75        24
+           0       0.83      0.83      0.83        36
+           1       0.75      0.75      0.75        24
 
-    accuracy                           0.78        60
-   macro avg       0.78      0.78      0.78        60
-weighted avg       0.79      0.78      0.78        60
+    accuracy                           0.80        60
+   macro avg       0.79      0.79      0.79        60
+weighted avg       0.80      0.80      0.80        60
 
 ==== Heart Disease - Random Forest ====
               precision    recall  f1-score   support
 
-           0       0.91      0.89      0.90        36
-           1       0.84      0.88      0.86        24
+           0       0.91      0.86      0.89        36
+           1       0.81      0.88      0.84        24
 
-    accuracy                           0.88        60
-   macro avg       0.88      0.88      0.88        60
-weighted avg       0.88      0.88      0.88        60
+    accuracy                           0.87        60
+   macro avg       0.86      0.87      0.86        60
+weighted avg       0.87      0.87      0.87        60
 
 ==== Heart Disease - SVM ====
               precision    recall  f1-score   support
 
-           0       0.89      0.92      0.90        36
-           1       0.87      0.83      0.85        24
+           0       0.92      0.92      0.92        36
+           1       0.88      0.88      0.88        24
 
-    accuracy                           0.88        60
-   macro avg       0.88      0.88      0.88        60
-weighted avg       0.88      0.88      0.88        60
+    accuracy                           0.90        60
+   macro avg       0.90      0.90      0.90        60
+weighted avg       0.90      0.90      0.90        60
 
 ==== Heart Disease - KNN ====
               precision    recall  f1-score   support
@@ -111,12 +111,12 @@ weighted avg       0.83      0.83      0.83        60
 ==== Heart Disease - XGBoost ====
               precision    recall  f1-score   support
 
-           0       0.91      0.81      0.85        36
-           1       0.75      0.88      0.81        24
+           0       0.90      0.78      0.84        36
+           1       0.72      0.88      0.79        24
 
-    accuracy                           0.83        60
-   macro avg       0.83      0.84      0.83        60
-weighted avg       0.84      0.83      0.83        60
+    accuracy                           0.82        60
+   macro avg       0.81      0.83      0.81        60
+weighted avg       0.83      0.82      0.82        60
 
 ==== Heart Disease - LightGBM ====
               precision    recall  f1-score   support
@@ -131,10 +131,10 @@ weighted avg       0.89      0.88      0.88        60
 ==== Heart Disease - CatBoost ====
               precision    recall  f1-score   support
 
-           0       0.86      0.86      0.86        36
-           1       0.79      0.79      0.79        24
+           0       0.92      0.92      0.92        36
+           1       0.88      0.88      0.88        24
 
-    accuracy                           0.83        60
-   macro avg       0.83      0.83      0.83        60
-weighted avg       0.83      0.83      0.83        60
+    accuracy                           0.90        60
+   macro avg       0.90      0.90      0.90        60
+weighted avg       0.90      0.90      0.90        60
 

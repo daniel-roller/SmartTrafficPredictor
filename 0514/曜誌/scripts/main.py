@@ -27,7 +27,7 @@ models = {
     "KNN": KNeighborsClassifier(),
     "XGBoost": XGBClassifier(eval_metric='logloss'),
     "LightGBM": LGBMClassifier(verbose=-1, force_col_wise=True, n_jobs=1),
-    "CatBoost": CatBoostClassifier(verbose=0),
+    "CatBoost": CatBoostClassifier(verbose=0,save_snapshot=False)
 }
 
 # === 結果儲存 ===
@@ -35,8 +35,15 @@ results = []
 report_texts = []
 
 # === 評估函式 ===
-def evaluate_and_log(model, name, X_train, X_test, y_train, y_test):
-    model.fit(X_train, y_train)
+def evaluate_and_log(model, name, X_train, X_test, y_train, y_test, param_grid=None):
+    if param_grid:
+        grid = GridSearchCV(model, param_grid, cv=3, scoring='f1', n_jobs=-1)
+        grid.fit(X_train, y_train)
+        model = grid.best_estimator_
+        print(f"✓ {name} 使用最佳參數: {grid.best_params_}")
+    else:
+        model.fit(X_train, y_train)
+
     y_pred = model.predict(X_test)
     acc = accuracy_score(y_test, y_pred)
     f1 = f1_score(y_test, y_pred)
@@ -46,6 +53,39 @@ def evaluate_and_log(model, name, X_train, X_test, y_train, y_test):
     print(f"{name} 完成 ✓")
     print(report)
     print("=" * 60)
+
+param_grids = {
+    "Decision Tree": {
+        "max_depth": [3, 5, 10, None],
+        "min_samples_split": [2, 5, 10]
+    },
+    "Random Forest": {
+        "n_estimators": [50, 100],
+        "max_depth": [5, 10, None]
+    },
+    "SVM": {
+        "C": [0.1, 1, 10],
+        "kernel": ['linear', 'rbf']
+    },
+    "KNN": {
+        "n_neighbors": [3, 5, 7],
+        "weights": ['uniform', 'distance']
+    },
+    "XGBoost": {
+        "n_estimators": [50, 100],
+        "max_depth": [3, 5],
+        "learning_rate": [0.1, 0.01]
+    },
+    "LightGBM": {
+        "n_estimators": [50, 100],
+        "max_depth": [-1, 5, 10],
+        "learning_rate": [0.1, 0.01]
+    },
+    "CatBoost": {
+        "depth": [4, 6],
+        "learning_rate": [0.1, 0.01]
+    }
+}
 
 # === 載入與預處理資料集 ===
 datasets = {
@@ -65,11 +105,15 @@ for dataset_name, df in datasets.items():
     X_train_scaled = scaler.fit_transform(X_train)
     X_test_scaled = scaler.transform(X_test)
 
+    use_gridsearch = True
+
     for name, model in models.items():
+        param_grid = param_grids.get(name) if use_gridsearch else None
         if name in ["SVM", "KNN"]:
-            evaluate_and_log(model, f"{dataset_name} - {name}", X_train_scaled, X_test_scaled, y_train, y_test)
+            evaluate_and_log(model, f"{dataset_name} - {name}", X_train_scaled, X_test_scaled, y_train, y_test, param_grid)
         else:
-            evaluate_and_log(model, f"{dataset_name} - {name}", X_train, X_test, y_train, y_test)
+            evaluate_and_log(model, f"{dataset_name} - {name}", X_train, X_test, y_train, y_test, param_grid)
+
 
 # === 匯出結果 ===
 results_df = pd.DataFrame(results)

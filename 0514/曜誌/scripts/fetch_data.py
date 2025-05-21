@@ -52,3 +52,12 @@ heart_data = heart_data.dropna()
 heart_data.to_csv("../data/heart_processed.csv", index=False)
 
 print("✅ 預處理完成，已儲存 wine_processed.csv 與 heart_processed.csv")
+
+
+"""
+| 結構          | 維度 | 像什麼      | 用途                 |
+| ----------- | -- | -------- | ------------------ |
+| `Series`    | 1D | 一欄數據     | 機器學習的 y（標籤、目標）     |
+| `DataFrame` | 2D | 表格（多欄數據） | X 特徵資料、整份資料集的儲存與處理 |
+"""
+

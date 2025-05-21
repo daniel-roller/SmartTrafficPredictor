@@ -71,7 +71,8 @@ def evaluate_and_log(model, name, X_train, X_test, y_train, y_test, param_grid=N
 # === 載入與預處理資料集 ===
 datasets = {
     "Wine Quality": pd.read_csv("../data/wine_processed.csv"),
-    "Heart Disease": pd.read_csv("../data/heart_processed.csv")
+    "Heart Disease": pd.read_csv("../data/heart_processed.csv"),
+    "Breast Cancer": pd.read_csv("../data/breast_cancer_processed.csv")
 }
 
 # === 主迴圈 ===

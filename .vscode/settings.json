@@ -1,0 +1,15 @@
+{
+  // 🧠 Copilot 產生 Git commit 訊息時使用中文提示
+  "github.copilot.generateCommitMessage.prompt": "請用繁體中文為以下代碼變更生成一段清楚的 Git commit 訊息，說明修改內容與目的。",
+
+  // ✅ 常用開發設定（可選）
+  "editor.tabSize": 4,
+  "editor.formatOnSave": true,
+  "files.autoSave": "onWindowChange",
+  "python.languageServer": "Pylance",
+  "python.formatting.provider": "black",
+  "python.analysis.typeCheckingMode": "basic",
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": true
+  }
+}

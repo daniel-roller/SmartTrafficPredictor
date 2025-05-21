@@ -10,6 +10,8 @@ os.makedirs("../data", exist_ok=True)
 wine_quality = fetch_ucirepo(id=186)
 heart_disease = fetch_ucirepo(id=45)
 
+breast_cancer = fetch_ucirepo(id=17)
+
 # === Wine Quality 資料處理 ===
 X_wine = wine_quality.data.features.copy()
 y_wine = wine_quality.data.targets
@@ -51,7 +53,24 @@ heart_data = heart_data.dropna()
 # 儲存結果
 heart_data.to_csv("../data/heart_processed.csv", index=False)
 
-print("✅ 預處理完成，已儲存 wine_processed.csv 與 heart_processed.csv")
+
+#Breast Cancer 資料處理#
+X_bc = breast_cancer.data.features.copy()
+y_bc = breast_cancer.data.targets
+
+# 確保 y 是 Series，並轉為 0/1
+if isinstance(y_bc, pd.DataFrame):
+    y_bc = y_bc.iloc[:, 0]
+
+# 將 'M' (惡性) 轉為 1，'B' (良性) 轉為 0
+y_bc = y_bc.map({'M': 1, 'B': 0})
+y_bc.name = "target"
+
+# 合併特徵與標籤
+bc_data = pd.concat([X_bc, y_bc], axis=1)
+bc_data.to_csv("../data/breast_cancer_processed.csv", index=False)
+
+print("✅ 預處理完成，已儲存 wine_processed.csv 與 heart_processed.csv 與 breast_cancer_processed.csv")
 
 
 """

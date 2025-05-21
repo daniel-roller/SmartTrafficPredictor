@@ -4,7 +4,6 @@ import numpy as np
 import os
 from sklearn.model_selection import train_test_split, GridSearchCV
 from sklearn.preprocessing import StandardScaler
-from sklearn.impute import SimpleImputer
 from sklearn.metrics import accuracy_score, f1_score, classification_report
 from sklearn.tree import DecisionTreeClassifier
 from sklearn.ensemble import RandomForestClassifier
@@ -13,6 +12,7 @@ from sklearn.neighbors import KNeighborsClassifier
 from xgboost import XGBClassifier
 from lightgbm import LGBMClassifier
 from catboost import CatBoostClassifier
+from imblearn.over_sampling import SMOTE
 import warnings
 
 warnings.filterwarnings("ignore")
@@ -27,20 +27,34 @@ models = {
     "KNN": KNeighborsClassifier(),
     "XGBoost": XGBClassifier(eval_metric='logloss'),
     "LightGBM": LGBMClassifier(verbose=-1, force_col_wise=True, n_jobs=1),
-    "CatBoost": CatBoostClassifier(verbose=0,save_snapshot=False)
+    "CatBoost": CatBoostClassifier(verbose=0, save_snapshot=False)
+}
+
+# === 參數網格 ===
+param_grids = {
+    "Decision Tree": {"max_depth": [3, 5, 10, None], "min_samples_split": [2, 5, 10]},
+    "Random Forest": {"n_estimators": [50, 100], "max_depth": [5, 10, None]},
+    "SVM": {"C": [0.1, 1, 10], "kernel": ['linear', 'rbf']},
+    "KNN": {"n_neighbors": [3, 5, 7], "weights": ['uniform', 'distance']},
+    "XGBoost": {"n_estimators": [50, 100], "max_depth": [3, 5], "learning_rate": [0.1, 0.01]},
+    "LightGBM": {"n_estimators": [50, 100], "max_depth": [-1, 5, 10], "learning_rate": [0.1, 0.01]},
+    "CatBoost": {"depth": [4, 6], "learning_rate": [0.1, 0.01]}
 }
 
 # === 結果儲存 ===
 results = []
 report_texts = []
 
-# === 評估函式 ===
 def evaluate_and_log(model, name, X_train, X_test, y_train, y_test, param_grid=None):
     if param_grid:
-        grid = GridSearchCV(model, param_grid, cv=3, scoring='f1', n_jobs=-1)
-        grid.fit(X_train, y_train)
-        model = grid.best_estimator_
-        print(f"✓ {name} 使用最佳參數: {grid.best_params_}")
+        try:
+            grid = GridSearchCV(model, param_grid, cv=3, scoring='f1', n_jobs=-1)
+            grid.fit(X_train, y_train)
+            model = grid.best_estimator_
+            print(f"✓ {name} 使用最佳參數: {grid.best_params_}")
+        except Exception as e:
+            print(f"⚠ {name} GridSearch 失敗，使用預設參數: {e}")
+            model.fit(X_train, y_train)
     else:
         model.fit(X_train, y_train)
 
@@ -54,58 +68,31 @@ def evaluate_and_log(model, name, X_train, X_test, y_train, y_test, param_grid=N
     print(report)
     print("=" * 60)
 
-param_grids = {
-    "Decision Tree": {
-        "max_depth": [3, 5, 10, None],
-        "min_samples_split": [2, 5, 10]
-    },
-    "Random Forest": {
-        "n_estimators": [50, 100],
-        "max_depth": [5, 10, None]
-    },
-    "SVM": {
-        "C": [0.1, 1, 10],
-        "kernel": ['linear', 'rbf']
-    },
-    "KNN": {
-        "n_neighbors": [3, 5, 7],
-        "weights": ['uniform', 'distance']
-    },
-    "XGBoost": {
-        "n_estimators": [50, 100],
-        "max_depth": [3, 5],
-        "learning_rate": [0.1, 0.01]
-    },
-    "LightGBM": {
-        "n_estimators": [50, 100],
-        "max_depth": [-1, 5, 10],
-        "learning_rate": [0.1, 0.01]
-    },
-    "CatBoost": {
-        "depth": [4, 6],
-        "learning_rate": [0.1, 0.01]
-    }
-}
-
 # === 載入與預處理資料集 ===
 datasets = {
     "Wine Quality": pd.read_csv("../data/wine_processed.csv"),
     "Heart Disease": pd.read_csv("../data/heart_processed.csv")
 }
 
-# === 訓練與評估所有模型 ===
+# === 主迴圈 ===
+use_gridsearch = True
+use_smote = True
+
 for dataset_name, df in datasets.items():
     X = df.drop("target", axis=1)
     y = df["target"]
 
     print(f"\n📊 資料集：{dataset_name}")
-
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+    if use_smote:
+        smote = SMOTE(random_state=42)
+        X_train, y_train = smote.fit_resample(X_train, y_train)
+        print(f"📌 已對訓練資料使用 SMOTE（{dataset_name}）")
+
     scaler = StandardScaler()
     X_train_scaled = scaler.fit_transform(X_train)
     X_test_scaled = scaler.transform(X_test)
-
-    use_gridsearch = True
 
     for name, model in models.items():
         param_grid = param_grids.get(name) if use_gridsearch else None
@@ -113,7 +100,6 @@ for dataset_name, df in datasets.items():
             evaluate_and_log(model, f"{dataset_name} - {name}", X_train_scaled, X_test_scaled, y_train, y_test, param_grid)
         else:
             evaluate_and_log(model, f"{dataset_name} - {name}", X_train, X_test, y_train, y_test, param_grid)
-
 
 # === 匯出結果 ===
 results_df = pd.DataFrame(results)

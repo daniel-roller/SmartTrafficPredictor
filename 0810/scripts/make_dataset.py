@@ -5,20 +5,13 @@ import pickle
 import numpy as np
 import pandas as pd
 
+from config import VD_ID, WINDOW, HORIZON, FEATURES, TARGETS, TRAIN_RATIO, VAL_RATIO
+
 # === 自動設定資料夾路徑 ===
 BASE_DIR    = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 CLEANED_DIR = os.path.join(BASE_DIR, "cleaned")
 OUTPUT_DIR  = os.path.join(BASE_DIR, "datasets")
 os.makedirs(OUTPUT_DIR, exist_ok=True)
-
-# === 固定使用指定路段的 VD ===
-VD_ID       = "VD-N1-N-0.000-M-LOOP"  # 國1 圓山端
-WINDOW      = 12
-HORIZON     = 1
-FEATURES    = ["avg_speed", "avg_occupancy", "total_vehicles"]
-TARGETS     = ["avg_speed", "total_vehicles"]
-TRAIN_RATIO = 0.70
-VAL_RATIO   = 0.15
 
 def unify_occupancy_scale(df, col="avg_occupancy"):
     """把佔有率統一到 0~1"""
@@ -72,6 +65,13 @@ def main():
     df_all["time_bin"] = pd.to_datetime(df_all["time_bin"], errors="coerce")
     df_all = df_all.dropna(subset=["time_bin"]).sort_values("time_bin").reset_index(drop=True)
 
+    # === 新增時間特徵 ===
+    df_all["hour"] = df_all["time_bin"].dt.hour
+    df_all["weekday"] = df_all["time_bin"].dt.weekday
+    df_all["is_weekend"] = (df_all["weekday"] >= 5).astype(int)
+    # 尖峰：7-9am, 4-7pm
+    df_all["is_peak"] = df_all["hour"].apply(lambda h: 1 if (7 <= h <= 9) or (16 <= h <= 19) else 0)
+
     # 4) 處理佔有率 + 缺值
     df_all = unify_occupancy_scale(df_all, "avg_occupancy")
     df_all = df_all.dropna(subset=FEATURES).reset_index(drop=True)
@@ -103,7 +103,7 @@ def main():
     X_val, y_val     = norm_X(X_all[val_m]),   norm_y(y_all[val_m])
     X_test, y_test   = norm_X(X_all[test_m]),  norm_y(y_all[test_m])
 
-    # 9) 存成 pkl（檔名包含 VD）
+    # 9) 存成 pkl（包含時間戳）
     vd_safe = VD_ID.replace("/", "_").replace("\\", "_")
     out_path = os.path.join(OUTPUT_DIR, f"traffic_lstm_{vd_safe}.pkl")
     out = {
@@ -118,6 +118,10 @@ def main():
         "freq": "15min",
         "x_mean": x_mean.squeeze(), "x_std": x_std.squeeze(),
         "y_mean": y_mean.squeeze(), "y_std": y_std.squeeze(),
+        # 新增時間戳
+        "train_time_bin": ts_for_samples[train_m],
+        "val_time_bin":   ts_for_samples[val_m],
+        "test_time_bin":  ts_for_samples[test_m],
     }
     with open(out_path, "wb") as f:
         pickle.dump(out, f)

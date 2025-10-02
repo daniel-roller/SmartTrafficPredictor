@@ -6,6 +6,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.metrics import mean_squared_error, mean_absolute_error
 
+# 匯入 baseline 的設定
+from config import BASELINE_MA_WINDOW
+
 # === 自動偵測最新的 dataset ===
 BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
 DATASET_DIR = os.path.join(BASE_DIR, "datasets")
@@ -37,8 +40,8 @@ rmse_naive = np.sqrt(mean_squared_error(y_true_naive, y_pred_naive))
 mae_naive = mean_absolute_error(y_true_naive, y_pred_naive)
 mape_naive = np.mean(np.abs((y_true_naive - y_pred_naive) / (y_true_naive + 1e-8))) * 100
 
-# === Baseline 2: Moving Average (過去12筆平均) ===
-window = 12
+# === Baseline 2: Moving Average (使用 config 設定的 window) ===
+window = BASELINE_MA_WINDOW
 y_pred_ma = []
 for i in range(window, len(y_true)):
     y_pred_ma.append(y_true[i - window : i].mean(axis=0))
@@ -53,7 +56,7 @@ mape_ma = np.mean(np.abs((y_true_ma - y_pred_ma) / (y_true_ma + 1e-8))) * 100
 with open(os.path.join(RESULTS_DIR, "baseline_metrics.txt"), "w", encoding="utf-8") as f:
     f.write("Naive Baseline:\n")
     f.write(f"  RMSE: {rmse_naive:.4f}, MAE: {mae_naive:.4f}, MAPE: {mape_naive:.2f}%\n\n")
-    f.write("Moving Average (12) Baseline:\n")
+    f.write(f"Moving Average ({window}) Baseline:\n")
     f.write(f"  RMSE: {rmse_ma:.4f}, MAE: {mae_ma:.4f}, MAPE: {mape_ma:.2f}%\n")
 
 print("✅ Baseline 指標已存到 baseline_metrics.txt")
@@ -62,7 +65,7 @@ print("✅ Baseline 指標已存到 baseline_metrics.txt")
 plt.figure(figsize=(12, 6))
 plt.plot(y_true[:200, 0], label=f"True {target_names[0]}")
 plt.plot(y_pred_naive[:200, 0], label=f"Naive Pred {target_names[0]}")
-plt.plot(y_pred_ma[:200, 0], label=f"MA(12) Pred {target_names[0]}")
+plt.plot(y_pred_ma[:200, 0], label=f"MA({window}) Pred {target_names[0]}")
 plt.title(f"{target_names[0]} Baseline (前200筆)")
 plt.xlabel("Samples")
 plt.ylabel(target_names[0])

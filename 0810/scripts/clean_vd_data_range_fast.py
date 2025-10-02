@@ -8,8 +8,8 @@ from datetime import datetime, timedelta
 
 
 # === 使用者可調參數 ===
-START_DATE = "20240216"   # 起始日 (YYYYMMDD)
-END_DATE   = "20240301"   # 結束日 (YYYYMMDD)，包含這一天
+START_DATE = "20240901"   # 起始日 (YYYYMMDD)
+END_DATE   = "20241031"   # 結束日 (YYYYMMDD)，包含這一天
 MAX_WORKERS = 16          # 平行處理核心數
 
 

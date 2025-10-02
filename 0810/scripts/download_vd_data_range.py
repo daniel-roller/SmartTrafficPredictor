@@ -128,6 +128,6 @@ if __name__ == "__main__":
     else:
         print("用法：")
         print("  python download_vd_data_range.py 20240101         # 單日下載")
-        print("  python download_vd_data_range.py 20240101 20240107 # 多日下載")
+        print("  python download_vd_data_range.py 20240816 20240930 # 多日下載")
 
-# python download_vd_data_range.py 20240101 20240107
+# python download_vd_data_range.py 20240816 20240930

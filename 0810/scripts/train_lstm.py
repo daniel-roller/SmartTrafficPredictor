@@ -83,9 +83,10 @@ elif MODEL_TYPE == "CNN_LSTM":
 else:
     raise ValueError(f"❌ 不支援的 MODEL_TYPE: {MODEL_TYPE}")
 
+# === 編譯模型 ===
 model.compile(
     optimizer=keras.optimizers.Adam(LEARNING_RATE),
-    loss=keras.losses.MeanSquaredError(),
+    loss=keras.losses.Huber(delta=1.0),     # ⬅️ 改這裡
     metrics=[keras.metrics.MeanAbsoluteError()]
 )
 

@@ -1,0 +1,2 @@
+Validation Loss (MSE): 0.1588
+Validation MAE: 0.3585

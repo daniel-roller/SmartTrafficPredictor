@@ -1,0 +1,6 @@
+Backtest (3 folds × 30 days)
+- cutoff=2024-10-02, MAE=1.296, RMSE=1.526
+- cutoff=2024-11-01, MAE=1.099, RMSE=1.593
+- cutoff=2024-12-01, MAE=1.415, RMSE=1.716
+
+Backtest Avg: MAE=1.270, RMSE=1.612

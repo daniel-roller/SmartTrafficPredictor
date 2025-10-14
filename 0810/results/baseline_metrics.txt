@@ -1,0 +1,5 @@
+Naive Baseline:
+  RMSE: 9.2693, MAE: 3.9743, MAPE: 8.52%
+
+Moving Average (12) Baseline:
+  RMSE: 7.5357, MAE: 3.6181, MAPE: 9.09%

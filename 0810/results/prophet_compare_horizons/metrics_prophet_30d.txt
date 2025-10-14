@@ -1,0 +1,2 @@
+Prophet 30d Forecast
+MAE=1.979, RMSE=2.586

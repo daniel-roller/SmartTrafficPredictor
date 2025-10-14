@@ -1,0 +1,2 @@
+Prophet 60d Forecast
+MAE=1.742, RMSE=2.209

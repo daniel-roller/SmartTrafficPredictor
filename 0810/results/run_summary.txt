@@ -1,0 +1,2 @@
+LSTM Test MAE=2.6474, MAPE=5.7221%
+Total time: 599.71 sec

@@ -1,15 +1,16 @@
 # config.py
+# 統一設定檔：LSTM + Prophet
 
 # ============================
 # 資料設定
 # ============================
 VD_ID = "VD-N1-N-0.000-M-LOOP"
 
-# 時間視窗設定
-WINDOW = 12          # 用多少筆資料當輸入 (12 → 3 小時)
-HORIZON = 96
+# 時間視窗設定（LSTM 用）
+WINDOW = 24          # ⬅️ 改成 24（6 小時），可看更長趨勢
+HORIZON = 96         # ⬅️ 只預測 1 天，短期模型先穩定
 
-# 特徵與目標欄位（含時間特徵）
+# 特徵與目標欄位
 FEATURES = [
     "avg_speed", "avg_occupancy", "total_vehicles",
     "hour", "weekday", "is_weekend", "is_peak"
@@ -21,23 +22,36 @@ TRAIN_RATIO = 0.70
 VAL_RATIO   = 0.15
 
 # ============================
-# 模型設定
+# 模型設定（LSTM 系列）
 # ============================
-MODEL_TYPE   = "LSTM"   # 可選: LSTM, GRU, LSTM2, CNN_LSTM
-LSTM_UNITS   = 64       # LSTM/GRU 隱藏層單元數
-DROPOUT      = 0.2      # Dropout 機率
-LEARNING_RATE = 1e-3    # 學習率
-BATCH_SIZE   = 32       # 每次訓練批次大小
-EPOCHS       = 100      # 最大訓練週期
-PATIENCE     = 10       # EarlyStopping 容忍次數
+MODEL_TYPE   = "LSTM"
+LSTM_UNITS   = 128       # ⬅️ 提升模型容量
+DROPOUT      = 0.3
+LEARNING_RATE = 1e-3
+BATCH_SIZE   = 32
+EPOCHS       = 100
+PATIENCE     = 10
 
 # ============================
 # Baseline 設定
 # ============================
-BASELINE_MA_WINDOW = 12  # Moving Average 的視窗大小
+BASELINE_MA_WINDOW = 12
 
 # ============================
-# 圖片設定
+# Prophet 長期趨勢設定
 # ============================
-PLOT_SAMPLES = 200       # 畫圖時要顯示的資料筆數
-    
+AGG_FREQ_LONG = "1D"
+LONG_TARGET = "avg_speed"
+LONG_HORIZON_DAYS = 30
+USE_REGRESSORS = True
+TREND_MODE = "flat"
+CAP_MULTIPLIER = 1.1
+FLOOR_MULTIPLIER = 0.9
+SMOOTHNESS = 0.35   # ⬅️ 原本 0.3，改成 0.45 讓趨勢更靈活
+
+
+# ============================
+# 回測設定
+# ============================
+BACKTEST_HORIZON_DAYS = 30
+BACKTEST_STEPS = 3

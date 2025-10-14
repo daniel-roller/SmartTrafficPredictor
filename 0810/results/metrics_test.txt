@@ -1,0 +1,7 @@
+Test RMSE: 5.4381
+Test MAE: 2.6474
+Test MAPE: 5.7221%
+
+--- 分情境誤差分析 ---
+尖峰: MAE=3.05, MAPE=7.08%
+離峰: MAE=2.70, MAPE=6.55%

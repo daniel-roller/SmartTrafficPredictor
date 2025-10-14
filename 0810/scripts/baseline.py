@@ -63,15 +63,41 @@ print("✅ Baseline 指標已存到 baseline_metrics.txt")
 
 # === 畫圖 (只畫車速，前200筆) ===
 plt.figure(figsize=(12, 6))
-plt.plot(y_true[:200, 0], label=f"True {target_names[0]}")
-plt.plot(y_pred_naive[:200, 0], label=f"Naive Pred {target_names[0]}")
-plt.plot(y_pred_ma[:200, 0], label=f"MA({window}) Pred {target_names[0]}")
+
+# 加粗虛線的真實值
+plt.plot(
+    y_true[:200, 0],
+    label=f"True {target_names[0]}",
+    color="blue",
+    linewidth=2.5,
+    linestyle="--"
+)
+
+# 橘色 Naive baseline
+plt.plot(
+    y_pred_naive[:200, 0],
+    label=f"Naive Pred {target_names[0]}",
+    color="orange",
+    linewidth=1.5
+)
+
+# 綠色 Moving Average baseline
+plt.plot(
+    y_pred_ma[:200, 0],
+    label=f"MA({window}) Pred {target_names[0]}",
+    color="green",
+    linewidth=1.8
+)
+
 plt.title(f"{target_names[0]} Baseline (前200筆)")
 plt.xlabel("Samples")
 plt.ylabel(target_names[0])
 plt.legend()
-plt.grid(True)
-plt.savefig(os.path.join(RESULTS_DIR, "baseline_pred_vs_true.png"))
+plt.grid(True, linestyle="--", alpha=0.6)
+
+# 儲存結果
+plt.tight_layout()
+plt.savefig(os.path.join(RESULTS_DIR, "baseline_pred_vs_true.png"), dpi=200)
 plt.close()
 
 print("✅ 圖片已存到 baseline_pred_vs_true.png")

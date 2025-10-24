@@ -254,10 +254,15 @@ def main():
     ==========================================
     """)
     
-    # 檢查必要檔案
-    if not os.path.exists(config.DATASETS_DIR):
-        print(f"❌ 找不到資料集資料夾: {config.DATASETS_DIR}")
-        print("請確認資料集檔案已放置在正確位置")
+    # 檢查 CSV 資料夾或 datasets 資料夾
+    csv_folder = os.path.join(config.BASE_DIR, "select")
+    datasets_folder = config.DATASETS_DIR
+    
+    if not os.path.exists(csv_folder) and not os.path.exists(datasets_folder):
+        print(f"❌ 找不到資料來源:")
+        print(f"   CSV 資料夾: {csv_folder}")
+        print(f"   .npy 資料夾: {datasets_folder}")
+        print("請確認資料檔案已放置在正確位置")
         return
     
     # 建立必要資料夾

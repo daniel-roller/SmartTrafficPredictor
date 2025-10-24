@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-交通流量預測系統 - 資料處理器 (簡化版)
+交通流量預測系統 - 資料處理器 (簡化版 - 支援 CSV)
 """
 
 import numpy as np
@@ -11,6 +11,7 @@ from typing import Dict, List, Tuple, Optional, Union
 from sklearn.preprocessing import StandardScaler
 
 from config import config
+from data_loader import CSVDataLoader
 from utils import (
     validate_data_shapes, check_missing_values, handle_outliers,
     split_time_series_data, create_scaler, print_subsection_header,
@@ -100,15 +101,50 @@ class SimpleFeatureEngineering:
         return enhanced_features
 
 class DataProcessor:
-    """資料處理主類"""
+    """資料處理主類 - 支援 CSV 直接載入"""
     
     def __init__(self):
         self.feature_engineer = SimpleFeatureEngineering()
         self.scaler = create_scaler(config.SCALER_METHOD)
         self.datasets: Dict = {}
+        self.csv_loader = CSVDataLoader()
+    
+    def load_all_datasets(self) -> Dict:
+        """載入所有資料集 - 從 CSV 或 .npy 檔案"""
+        print_subsection_header("📂 載入交通資料集")
         
-    def load_single_dataset(self, dataset_name: str) -> Optional[Dict]:
-        """載入單一資料集"""
+        # 優先從 CSV 載入
+        csv_folder = os.path.join(config.BASE_DIR, "select")
+        if os.path.exists(csv_folder):
+            csv_files = [f for f in os.listdir(csv_folder) if f.endswith('.csv')]
+            if csv_files:
+                print("📊 從 CSV 檔案載入資料...")
+                datasets = self.csv_loader.load_all_csv_datasets(window_size=12, prediction_horizon=1)
+                
+                if datasets:
+                    self.datasets = datasets
+                    print(f"\n✅ 從 CSV 成功載入 {len(datasets)} 個資料集")
+                    return datasets
+        
+        # 如果沒有 CSV，嘗試從 .npy 載入
+        if hasattr(config, 'DATASETS_INFO') and config.DATASETS_INFO:
+            print("📊 從 .npy 檔案載入資料...")
+            datasets = {}
+            for dataset_name in config.DATASETS_INFO.keys():
+                dataset = self.load_single_dataset_from_npy(dataset_name)
+                if dataset is not None:
+                    datasets[dataset_name] = dataset
+            
+            if datasets:
+                self.datasets = datasets
+                print(f"\n✅ 從 .npy 成功載入 {len(datasets)} 個資料集")
+                return datasets
+        
+        print("❌ 沒有成功載入任何資料集")
+        return {}
+    
+    def load_single_dataset_from_npy(self, dataset_name: str) -> Optional[Dict]:
+        """從 .npy 檔案載入單一資料集"""
         if dataset_name not in config.DATASETS_INFO:
             print(f"❌ 未知的資料集: {dataset_name}")
             return None
@@ -153,24 +189,6 @@ class DataProcessor:
         except Exception as e:
             print(f"❌ 載入 {dataset_name} 失敗: {e}")
             return None
-    
-    def load_all_datasets(self) -> Dict:
-        """載入所有資料集"""
-        print_subsection_header("📂 載入交通資料集")
-        
-        datasets = {}
-        for dataset_name in config.DATASETS_INFO.keys():
-            dataset = self.load_single_dataset(dataset_name)
-            if dataset is not None:
-                datasets[dataset_name] = dataset
-        
-        if not datasets:
-            print("❌ 沒有成功載入任何資料集")
-        else:
-            print(f"\n✅ 成功載入 {len(datasets)} 個資料集")
-        
-        self.datasets = datasets
-        return datasets
     
     def process_single_dataset(self, dataset: Dict) -> Dict:
         """處理單一資料集"""

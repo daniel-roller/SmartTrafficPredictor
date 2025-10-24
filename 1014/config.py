@@ -52,6 +52,7 @@ class Config:
         # 特徵工程參數
         self.USE_LAG_FEATURES = True        # 是否使用滯後特徵
         self.LAG_WINDOWS = [1, 2, 3, 6, 12, 24]  # 滯後窗口
+        self.LAG_FEATURES = [1, 2, 3]       # 簡化版滯後特徵 (向後相容)
         self.USE_ROLLING_FEATURES = True    # 是否使用滾動統計特徵
         self.ROLLING_WINDOWS = [3, 6, 12, 24]  # 滾動窗口
         self.USE_TIME_FEATURES = True       # 是否使用時間特徵
@@ -65,40 +66,34 @@ class Config:
         # 設定 DATASETS_INFO (向後相容)
         self.DATASETS_INFO = self.available_datasets
         
-        # 傳統機器學習模型參數 - 修正缺少的屬性
+        # 傳統機器學習模型參數 - 簡化為3個基本模型
         self.TRADITIONAL_ML_PARAMS = {
             'Ridge': {
-                'alpha': [0.1, 1.0, 10.0, 100.0],
-                'solver': ['auto', 'svd', 'cholesky', 'lsqr'],
+                'alpha': 1.0,
+                'solver': 'auto',
                 'random_state': self.RANDOM_STATE
             },
             'RandomForest': {
-                'n_estimators': [50, 100, 200],
-                'max_depth': [None, 10, 20, 30],
-                'min_samples_split': [2, 5, 10],
-                'min_samples_leaf': [1, 2, 4],
+                'n_estimators': 100,
+                'max_depth': 10,
+                'min_samples_split': 5,
+                'min_samples_leaf': 2,
                 'random_state': self.RANDOM_STATE,
                 'n_jobs': self.N_JOBS
             },
             'XGBoost': {
-                'n_estimators': [50, 100, 200],
-                'max_depth': [3, 6, 9],
-                'learning_rate': [0.01, 0.1, 0.2],
-                'subsample': [0.8, 0.9, 1.0],
-                'colsample_bytree': [0.8, 0.9, 1.0],
+                'n_estimators': 100,
+                'max_depth': 6,
+                'learning_rate': 0.1,
+                'subsample': 0.8,
+                'colsample_bytree': 0.8,
                 'random_state': self.RANDOM_STATE,
-                'n_jobs': self.N_JOBS
-            },
-            'SVR': {
-                'C': [0.1, 1.0, 10.0],
-                'gamma': ['scale', 'auto', 0.001, 0.01],
-                'kernel': ['rbf', 'linear']
-            },
-            'LinearRegression': {
-                'fit_intercept': [True, False],
                 'n_jobs': self.N_JOBS
             }
         }
+        
+        # 是否儲存模型
+        self.SAVE_MODELS = True
         
         # 模型配置 (向後相容)
         self.MODELS_CONFIG = self.TRADITIONAL_ML_PARAMS

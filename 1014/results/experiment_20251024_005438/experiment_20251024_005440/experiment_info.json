@@ -1,0 +1,31 @@
+{
+  "experiment_type": "傳統機器學習",
+  "datasets": [
+    "國道1號_北向_台中系統交流道_后里地磅北_X",
+    "國道1號_北向_台中系統交流道_后里地磅北_y",
+    "國道1號_北向_高科交流道_路竹交流道_X",
+    "國道1號_北向_高科交流道_路竹交流道_y",
+    "國道1號_南向_后里地磅南_台中系統交流道_X",
+    "國道1號_南向_后里地磅南_台中系統交流道_y",
+    "國道1號_南向_路竹交流道_高科交流道_X",
+    "國道1號_南向_路竹交流道_高科交流道_y"
+  ],
+  "models": [
+    "Ridge",
+    "RandomForest",
+    "XGBoost",
+    "SVR",
+    "LinearRegression"
+  ],
+  "feature_engineering": true,
+  "cross_validation": true,
+  "memory_usage_start": "271.9 MB",
+  "timestamp": "20251024_005440",
+  "config": {
+    "train_ratio": 0.7,
+    "val_ratio": 0.15,
+    "test_ratio": 0.15,
+    "random_state": 42,
+    "max_sample_size": 10000
+  }
+}

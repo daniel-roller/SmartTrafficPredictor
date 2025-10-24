@@ -2,6 +2,48 @@
 0810/cleaned
 STP-main
 datasets
+<<<<<<< HEAD
 models
 1014/results
 1014/raw
+=======
+1014/raw
+1014/_pycache_
+1014/cleaned
+1014/models
+1014/datasets
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+
+# Virtual environments
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Project specific - generated files
+data/raw/*.csv
+data/processed/*.csv
+models/*.pkl
+results/*.png
+results/*.txt
+
+# Keep directory structure
+!data/raw/.gitkeep
+!data/processed/.gitkeep
+!models/.gitkeep
+!results/.gitkeep
+>>>>>>> 187d45c0720e093804068c39063b03e348a761aa

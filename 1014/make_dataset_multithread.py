@@ -3,42 +3,43 @@ import pandas as pd
 import numpy as np
 import pickle
 from config import Config
+from enhanced_feature_engineering import EnhancedFeatureEngineer
 from segment_selector import analyze_cleaned_data
 
-class SimpleDatasetMaker:
-    """簡化版資料集製作器"""
+class EnhancedDatasetMaker:
+    """增強版資料集製作器"""
     
     def __init__(self):
         self.config = Config()
-        print("🔧 資料集製作器初始化完成")
+        self.feature_engineer = EnhancedFeatureEngineer()
+        print("🔧 增強版資料集製作器初始化完成")
     
-    def prepare_data(self, df, time_col, speed_col):
-        """準備訓練資料"""
-        # 確保時間順序
-        df = df.sort_values(time_col).reset_index(drop=True)
+    def prepare_enhanced_data(self, df, time_col, speed_col, vehicle_col=None):
+        """準備增強特徵資料"""
+        print("🚀 開始特徵工程...")
         
-        # 基本特徵
-        df['hour'] = df[time_col].dt.hour
-        df['weekday'] = df[time_col].dt.weekday
-        df['is_weekend'] = (df['weekday'] >= 5).astype(int)
-        df['is_peak'] = ((df['hour'].between(7, 9)) | (df['hour'].between(17, 19))).astype(int)
+        # 應用增強特徵工程
+        df_enhanced = self.feature_engineer.create_all_features(
+            df, time_col, speed_col, vehicle_col
+        )
         
-        # 檢查是否有flow欄位
-        flow_col = None
-        for col in df.columns:
-            if 'flow' in col.lower() or 'vehicle' in col.lower():
-                flow_col = col
-                break
+        # 選擇特徵 (排除不需要的欄位)
+        exclude_cols = [time_col, 'vd_id', 'year', 'day', 'season']  # 排除不適合的特徵
+        feature_cols = [col for col in df_enhanced.columns if col not in exclude_cols]
         
-        if flow_col:
-            features = [speed_col, flow_col, 'hour', 'weekday', 'is_weekend', 'is_peak']
-            targets = [speed_col, flow_col]
+        # 確定目標變數
+        if vehicle_col and vehicle_col in df_enhanced.columns:
+            target_cols = [speed_col, vehicle_col]
         else:
-            # 只有速度資料
-            features = [speed_col, 'hour', 'weekday', 'is_weekend', 'is_peak'] 
-            targets = [speed_col]
+            target_cols = [speed_col]
         
-        return df[features].values, df[targets].values, features, targets
+        # 特徵選擇 (移除目標變數)
+        feature_cols = [col for col in feature_cols if col not in target_cols]
+        
+        print(f"📊 選擇 {len(feature_cols)} 個特徵, {len(target_cols)} 個目標")
+        print(f"🎯 目標變數: {target_cols}")
+        
+        return df_enhanced[feature_cols].values, df_enhanced[target_cols].values, feature_cols, target_cols
     
     def create_sequences(self, X, y, window_size, horizon):
         """建立時間序列"""
@@ -51,13 +52,13 @@ class SimpleDatasetMaker:
         return np.array(sequences_X), np.array(sequences_y)
     
     def process_segment(self, segment_info):
-        """處理單一路段"""
+        """處理單一路段 - 增強版"""
         segment_name = segment_info['segment']
         file_path = segment_info['file_path']
         time_col = segment_info['time_col']
         speed_col = segment_info['speed_col']
         
-        print(f"📊 處理路段: {segment_name}")
+        print(f"\n📊 處理路段: {segment_name}")
         
         try:
             # 載入資料
@@ -75,8 +76,17 @@ class SimpleDatasetMaker:
             # 移除缺值
             df = df.dropna(subset=[speed_col])
             
-            # 準備特徵和目標
-            X_data, y_data, feature_names, target_names = self.prepare_data(df, time_col, speed_col)
+            # 檢查車流量欄位
+            vehicle_col = None
+            for col in df.columns:
+                if 'flow' in col.lower() or 'vehicle' in col.lower():
+                    vehicle_col = col
+                    break
+            
+            # 應用增強特徵工程
+            X_data, y_data, feature_names, target_names = self.prepare_enhanced_data(
+                df, time_col, speed_col, vehicle_col
+            )
             
             # 建立序列
             X_seq, y_seq = self.create_sequences(X_data, y_data, 
@@ -86,6 +96,8 @@ class SimpleDatasetMaker:
             if len(X_seq) == 0:
                 print(f"⚠️ {segment_name} 資料不足，跳過")
                 return None
+            
+            print(f"📈 序列資料: {X_seq.shape}, 目標: {y_seq.shape}")
             
             # 分割資料
             train_size = int(len(X_seq) * self.config.TRAIN_RATIO)
@@ -124,23 +136,30 @@ class SimpleDatasetMaker:
                 'window_size': self.config.WINDOW_SIZE,
                 'horizon': self.config.HORIZON,
                 'features': feature_names,
-                'targets': target_names
+                'targets': target_names,
+                'enhanced_version': True  # 標記為增強版
             }
             
             # 儲存
-            save_path = os.path.join(self.config.DATASETS_DIR, f"{segment_name}.pkl")
+            save_path = os.path.join(self.config.DATASETS_DIR, f"{segment_name}_enhanced.pkl")
             with open(save_path, 'wb') as f:
                 pickle.dump(dataset, f)
             
-            print(f"✅ {segment_name} 完成 - 訓練: {len(X_train)}, 驗證: {len(X_val)}, 測試: {len(X_test)}")
+            print(f"✅ {segment_name} 完成")
+            print(f"   📊 訓練: {len(X_train)}, 驗證: {len(X_val)}, 測試: {len(X_test)}")
+            print(f"   🚀 特徵數量: {len(feature_names)}")
+            print(f"   💾 儲存至: {save_path}")
+            
             return save_path
             
         except Exception as e:
             print(f"❌ {segment_name} 失敗: {e}")
+            import traceback
+            traceback.print_exc()
             return None
     
     def create_all_datasets(self):
-        """建立所有資料集"""
+        """建立所有增強版資料集"""
         # 分析並選擇路段
         selected_names, segments_info = analyze_cleaned_data()
         
@@ -148,7 +167,7 @@ class SimpleDatasetMaker:
             print("❌ 沒有可用的路段")
             return
         
-        print(f"\n🚀 開始處理 {len(selected_names)} 個路段...")
+        print(f"\n🚀 開始處理 {len(selected_names)} 個路段 (增強特徵版)...")
         
         successful = []
         failed = []
@@ -160,7 +179,7 @@ class SimpleDatasetMaker:
             else:
                 failed.append(segment_info['segment'])
         
-        print(f"\n📊 資料集建立完成:")
+        print(f"\n📊 增強版資料集建立完成:")
         print(f"  ✅ 成功: {len(successful)} 個路段")
         print(f"  ❌ 失敗: {len(failed)} 個路段")
         
@@ -170,7 +189,7 @@ class SimpleDatasetMaker:
             print(f"  ⚠️ 失敗路段: {failed}")
 
 def main():
-    maker = SimpleDatasetMaker()
+    maker = EnhancedDatasetMaker()
     maker.create_all_datasets()
 
 if __name__ == "__main__":

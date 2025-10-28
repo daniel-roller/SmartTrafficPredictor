@@ -1,0 +1,6 @@
+,test_rmse,test_rmse,test_rmse,test_rmse,test_mape,test_mape,test_mape,test_mape,train_time,train_time
+,mean,std,min,max,mean,std,min,max,mean,sum
+model_type,,,,,,,,,,
+LSTM,29.375,18.121,16.954,59.438,22.736,13.431,11.988,42.717,293.249,1759.492
+TCN,32.239,18.635,19.072,60.659,23.717,11.455,14.583,42.099,161.606,969.635
+Transformer,30.328,16.897,18.132,54.495,25.03,14.182,14.735,45.546,187.496,1124.974
